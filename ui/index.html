@@ -1,0 +1,111 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>交、并、差集工具</title>
+    <style>
+      body {
+        font-family: Arial, sans-serif;
+        margin: 20px;
+      }
+      .file-input {
+        margin-bottom: 20px;
+      }
+      .file-path {
+        margin-left: 10px;
+        font-weight: bold;
+      }
+      .operation-select {
+        margin-bottom: 20px;
+      }
+      button {
+        padding: 10px 20px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      select {
+        padding: 10px;
+        font-size: 16px;
+        cursor: pointer;
+      }
+      .result {
+        margin-top: 20px;
+        width: 100%;
+        font-size: 14px;
+        resize: none;
+      }
+    </style>
+  </head>
+  <body>
+    <h1>交、并、差集工具</h1>
+    <div class="file-input">
+      <button id="file1">选择文件1</button>
+      <span id="file1-path" class="file-path"></span>
+    </div>
+    <div class="file-input">
+      <button id="file2">选择文件2</button>
+      <span id="file2-path" class="file-path"></span>
+    </div>
+    <div class="operation-select">
+      <label for="operation">选择操作:</label>
+      <select id="operation">
+        <option value="intersection">交集</option>
+        <option value="union">并集</option>
+        <option value="difference">差集</option>
+      </select>
+    </div>
+    <button id="calculate">计算</button>
+    <textarea id="result" class="result" rows="10" cols="50" readonly></textarea>
+
+    <script>
+      const { invoke } = window.__TAURI__.tauri;
+      const { open } = window.__TAURI__.dialog;
+
+      document.getElementById('file1').addEventListener('click', async () => {
+        const selected = await open({
+          multiple: false,
+          directory: false,
+          filters: [{ name: 'Text', extensions: ['txt'] }]
+        });
+        if (selected) {
+          document.getElementById('file1-path').textContent = selected;
+        }
+      });
+
+      document.getElementById('file2').addEventListener('click', async () => {
+        const selected = await open({
+          multiple: false,
+          directory: false,
+          filters: [{ name: 'Text', extensions: ['txt'] }]
+        });
+        if (selected) {
+          document.getElementById('file2-path').textContent = selected;
+        }
+      });
+
+      document.getElementById('calculate').addEventListener('click', async () => {
+        const file1Path = document.getElementById('file1-path').textContent;
+        const file2Path = document.getElementById('file2-path').textContent;
+        const operation = document.getElementById('operation').value;
+
+        console.log('File 1 Path:', file1Path);
+        console.log('File 2 Path:', file2Path);
+
+        if (!file1Path || !file2Path) {
+          alert('请先选择两个文件');
+          return;
+        }
+        console.log('Operation:', operation);
+
+        try {
+          const result = await invoke('calculate', { file1Path, file2Path, operation });
+          document.getElementById('result').textContent = result;
+        } catch (error) {
+          console.error('Error:', error);
+          alert('计算过程中发生错误');
+        }
+      });
+    </script>
+  </body>
+</html>
